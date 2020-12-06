@@ -1,0 +1,66 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="form-group">
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Your URL">
+        <div class="input-group-append">
+            <button class="btn btn-outline-primary" type="button" onclick="shorten()">Shorten</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function shorten() {
+        const url = $('.form-control').val();
+        if (!validate(url)) {
+            $('.form-group').append(errorAlert('URL is not valid!'));
+            return;
+        }
+        const action = '@Url.Action("", "Home")';
+        const jsonData = JSON.stringify(url);
+
+        $.ajax({
+            type: 'POST',
+            url: action,
+            data: jsonData,
+            contentType: "application/json",
+            success: function (response) {
+                $('.form-group').append(successAlert(response.shortUrl, response.originalUrl));
+            },
+            error: function (response) {
+                $('.form-group').append(errorAlert(response.responseText));
+            }
+        });
+    }
+
+    function validate(url) {
+        const pattern = new RegExp('^(https?:\\/\\/)?' +
+            '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' +
+            '((\\d{1,3}\\.){3}\\d{1,3}))' +
+            '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' +
+            '(\\?[;&a-z\\d%_.~+=-]*)?' +
+            '(\\#[-a-z\\d_]*)?$', 'i');
+        return !!pattern.test(url);
+    }
+
+    function errorAlert(message) {
+        return `
+            <div class="alert alert-danger alert-autocloseable-danger" role="alert">
+                Oops! ${message}
+                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            </div>
+        `;
+    }
+
+    function successAlert(shortUrl, originalUrl) {
+        return `
+            <div class="alert alert-success" role="alert">
+                <strong><a>${shortUrl}</a></strong>
+                <small>${originalUrl}</small>
+                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            </div>
+        `;
+    }
+</script>
